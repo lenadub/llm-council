@@ -7,6 +7,25 @@ export default function Sidebar({
   onSelectConversation,
   onNewConversation,
 }) {
+  const [workers, setWorkers] = useState([]);
+
+  useEffect(() => {
+    const fetchHealth = async () => {
+      try {
+        const res = await fetch('http://localhost:8001/api/health/workers');
+        const data = await res.json();
+        setWorkers(data);
+      } catch (err) {
+        console.error('Failed to fetch worker health:', err);
+      }
+    };
+
+    fetchHealth();
+    const interval = setInterval(fetchHealth, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="sidebar">
       <div className="sidebar-header">
@@ -37,6 +56,31 @@ export default function Sidebar({
             </div>
           ))
         )}
+      </div>
+
+      {/* Model health */}
+      <div className="model-health">
+        <h3>Model Status</h3>
+
+        {workers.length === 0 && (
+          <div className="model-health-item">No data</div>
+        )}
+
+        {workers.map((worker) => (
+          <div key={worker.name} className="model-health-item">
+            <span className="model-name">{worker.name}</span>
+
+            {worker.status === 'ok' ? (
+              <span className="model-ok">
+                ● {worker.latency_ms} ms
+              </span>
+            ) : (
+              <span className="model-offline">
+                ● offline
+              </span>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

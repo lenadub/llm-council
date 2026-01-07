@@ -11,6 +11,7 @@ import asyncio
 
 from . import storage
 from .council import run_full_council, generate_conversation_title, stage1_collect_responses, stage2_collect_rankings, stage3_synthesize_final, calculate_aggregate_rankings
+from .worker_provider import get_workers_health
 
 app = FastAPI(title="LLM Council API")
 
@@ -55,6 +56,9 @@ async def root():
     """Health check endpoint."""
     return {"status": "ok", "service": "LLM Council API"}
 
+@app.get("/api/health/workers")
+async def workers_health():
+    return await get_workers_health()
 
 @app.get("/api/conversations", response_model=List[ConversationMetadata])
 async def list_conversations():

@@ -78,3 +78,37 @@
   color: var(--blockquote-text);
   font-size: 12px;
 }
+
+.model-health {
+  padding: 12px;
+  border-top: 1px solid var(--border-color);
+  font-size: 13px;
+}
+
+.model-health h3 {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blockquote-text);
+  text-transform: uppercase;
+}
+
+.model-health-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.model-name {
+  color: var(--text-color);
+}
+
+.model-ok {
+  color: #22c55e; /* green */
+  font-weight: 600;
+}
+
+.model-offline {
+  color: #ef4444; /* red */
+  font-weight: 600;
+}

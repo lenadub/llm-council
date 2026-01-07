@@ -1,5 +1,6 @@
 import asyncio
 import httpx
+import time
 from typing import List, Dict, Any
 
 # For now: ONE worker (yours)
@@ -91,3 +92,31 @@ async def query_model(
         data = r.json()
 
     return {"content": data["content"]}
+
+async def check_worker_health(worker):
+    start = time.time()
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            response = await client.get(worker["url"].replace("/chat", "/health"))
+            response.raise_for_status()
+            data = response.json()
+
+        latency_ms = int((time.time() - start) * 1000)
+
+        return {
+            "name": worker["name"],
+            "status": "ok",
+            "model": data.get("model"),
+            "latency_ms": latency_ms,
+        }
+
+    except Exception as e:
+        return {
+            "name": worker["name"],
+            "status": "unavailable",
+            "error": str(e),
+        }
+    
+async def get_workers_health():
+    tasks = [check_worker_health(worker) for worker in WORKERS]
+    return await asyncio.gather(*tasks)
