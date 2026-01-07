@@ -10,6 +10,19 @@ function App() {
   const [currentConversation, setCurrentConversation] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('theme') || 'light';
+  });
+
+  useEffect(() => {
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+  };
+
   // Load conversations on mount
   useEffect(() => {
     loadConversations();
@@ -183,6 +196,22 @@ function App() {
 
   return (
     <div className="app">
+      <div style={{ position: 'absolute', top: 10, right: 12, zIndex: 10 }}>
+        <button
+          onClick={toggleTheme}
+          style={{
+            background: 'var(--card-bg)',
+            color: 'var(--text-color)',
+            border: '1px solid var(--border-color)',
+            padding: '6px 10px',
+            borderRadius: '6px',
+            cursor: 'pointer',
+          }}
+        >
+          {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
+        </button>
+      </div>
+
       <Sidebar
         conversations={conversations}
         currentConversationId={currentConversationId}

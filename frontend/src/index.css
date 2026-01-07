@@ -1,5 +1,29 @@
+body {
+  --bg-color: #f5f5f5;
+  --text-color: #1a1a1a;
+  --app-bg: #ffffff;
+  --card-bg: #f5f5f5;
+  --border-color: #dddddd;
+  --blockquote-border: #dddddd;
+  --blockquote-text: #666666;
+  --code-bg: #f5f5f5;
+}
+
+/* Dark mode */
+body[data-theme="dark"] {
+  --bg-color: #121212;
+  --text-color: #eaeaea;
+  --app-bg: #1a1a1a;
+  --card-bg: #1e1e1e;
+  --border-color: #333333;
+  --blockquote-border: #444444;
+  --blockquote-text: #bbbbbb;
+  --code-bg: #1e1e1e;
+}
+
 :root {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    'Roboto', sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -16,10 +40,10 @@
 }
 
 body {
-  margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: #f5f5f5;
+  background: var(--bg-color);
+  color: var(--text-color);
 }
 
 #root {
@@ -28,7 +52,6 @@ body {
   overflow: hidden;
 }
 
-/* Global markdown styling */
 .markdown-content {
   padding: 12px;
 }
@@ -70,7 +93,7 @@ body {
 }
 
 .markdown-content pre {
-  background: #f5f5f5;
+  background: var(--code-bg);
   padding: 12px;
   border-radius: 4px;
   overflow-x: auto;
@@ -78,7 +101,7 @@ body {
 }
 
 .markdown-content code {
-  background: #f5f5f5;
+  background: var(--code-bg);
   padding: 2px 6px;
   border-radius: 3px;
   font-family: monospace;
@@ -93,6 +116,13 @@ body {
 .markdown-content blockquote {
   margin: 0 0 12px 0;
   padding-left: 16px;
-  border-left: 4px solid #ddd;
-  color: #666;
+  border-left: 4px solid var(--blockquote-border);
+  color: var(--blockquote-text);
+}
+
+body,
+#root,
+.app {
+  background-color: var(--bg-color) !important;
+  color: var(--text-color) !important;
 }
