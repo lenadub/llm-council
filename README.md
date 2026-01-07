@@ -1,87 +1,274 @@
-# LLM Council
 
-![llmcouncil](header.jpg)
+# LLM Council — Local & Distributed Deployment
 
-The idea of this repo is that instead of asking a question to your favorite LLM provider (e.g. OpenAI GPT 5.1, Google Gemini 3.0 Pro, Anthropic Claude Sonnet 4.5, xAI Grok 4, eg.c), you can group them into your "LLM Council". This repo is a simple, local web app that essentially looks like ChatGPT except it uses OpenRouter to send your query to multiple LLMs, it then asks them to review and rank each other's work, and finally a Chairman LLM produces the final response.
+## Group Information
 
-In a bit more detail, here is what happens when you submit a query:
+**TD Group:** `CDOF2`
 
-1. **Stage 1: First opinions**. The user query is given to all LLMs individually, and the responses are collected. The individual responses are shown in a "tab view", so that the user can inspect them all one by one.
-2. **Stage 2: Review**. Each individual LLM is given the responses of the other LLMs. Under the hood, the LLM identities are anonymized so that the LLM can't play favorites when judging their outputs. The LLM is asked to rank them in accuracy and insight.
-3. **Stage 3: Final response**. The designated Chairman of the LLM Council takes all of the model's responses and compiles them into a single final answer that is presented to the user.
+**Team Members:**
 
-## Vibe Code Alert
+* DOGUET Cassie
+* DUBOIS Léna
+* LALEYE Nadirath
+* MAARBANI Yasmine
 
-This project was 99% vibe coded as a fun Saturday hack because I wanted to explore and evaluate a number of LLMs side by side in the process of [reading books together with LLMs](https://x.com/karpathy/status/1990577951671509438). It's nice and useful to see multiple responses side by side, and also the cross-opinions of all LLMs on each other's outputs. I'm not going to support it in any way, it's provided here as is for other people's inspiration and I don't intend to improve it. Code is ephemeral now and libraries are over, ask your LLM to change it in whatever way you like.
+---
 
-## Setup
+## Project Overview
 
-### 1. Install Dependencies
+This project is a **local and distributed reimplementation of Andrej Karpathy’s LLM Council concept**.
+Instead of relying on cloud-based LLM APIs, the entire system runs **locally**, using multiple Large Language Models deployed across **separate machines** and coordinated via **REST APIs**.
 
-The project uses [uv](https://docs.astral.sh/uv/) for project management.
+The application provides a web interface similar to ChatGPT, but under the hood it leverages **multiple local LLMs working together**. Each model contributes an independent perspective, reviews the others’ outputs, and a dedicated **Chairman LLM** synthesizes a final answer.
 
-**Backend:**
+This architecture emphasizes:
+
+* diversity of reasoning
+* self-critique
+* aggregation of perspectives
+* distributed system design
+
+---
+
+## What Is the LLM Council?
+
+Rather than querying a single LLM, user queries are processed by a **Council of LLMs** operating in three stages:
+
+### **Stage 1 — First Opinions**
+
+* The user submits a query.
+* Each council LLM generates an answer **independently**.
+* Responses are displayed side-by-side in a tabbed interface for inspection.
+
+### **Stage 2 — Peer Review & Ranking**
+
+* Each LLM reviews the other responses.
+* Model identities are **anonymized at the prompt level** to avoid bias.
+* Each LLM evaluates the responses based on accuracy and insight and produces a ranking.
+
+### **Stage 3 — Chairman Synthesis**
+
+* A designated **Chairman LLM**, running as a **separate service**, receives:
+
+  * all Stage 1 responses
+  * all Stage 2 rankings
+* The Chairman synthesizes these into a single, final answer presented to the user.
+
+---
+
+## Key Differences from the Original Project
+
+| Original Implementation | This Project                           |
+| ----------------------- | -------------------------------------- |
+| Cloud-based LLMs        | Fully local LLMs                       |
+| OpenRouter API          | Ollama-based local inference           |
+| Single-machine focus    | Distributed multi-machine architecture |
+| No service separation   | Separate Workers & Chairman services   |
+
+All cloud-based APIs have been **completely removed**.
+
+---
+
+## System Architecture
+
+```
+Browser
+   |
+Frontend (React)
+   |
+Backend (FastAPI Orchestrator)
+   |
+   |── Worker 1 (PC A, local LLM)
+   |── Worker 2 (PC B, local LLM)
+   |── Worker 3 (PC C, local LLM)
+   |
+   └── Chairman (PC D, synthesis-only LLM)
+```
+
+* **Workers** generate first opinions and peer rankings.
+* **Chairman** performs synthesis only.
+* All components communicate using **REST APIs**.
+* Ollama runs **locally on each machine**.
+
+---
+
+## Network & IP Address Configuration (IMPORTANT)
+
+This project relies on **explicit IP address configuration** to enable communication between machines.
+
+### Requirements
+
+* All machines must be reachable over the network (same LAN or private VPN).
+* Each Worker and the Chairman expose a REST API on a known port.
+* The Backend must know the **IP address of each Worker and the Chairman**.
+
+### Example Worker Configuration (`backend/worker_provider.py`)
+
+```python
+WORKERS = [
+    {"name": "llama3.1-8b", "url": "http://192.168.1.10:8002/chat"},
+    {"name": "mistral", "url": "http://192.168.1.42:8002/chat"},
+    {"name": "qwen2.5-7b", "url": "http://192.168.1.43:8002/chat"},
+]
+
+CHAIRMAN_URL = "http://192.168.1.50:9000/synthesize"
+```
+
+Each team member running a Worker must provide:
+
+* their **local IP address**
+* the **model name** they are hosting
+
+---
+
+## Local LLM Stack
+
+* **Inference engine:** Ollama
+* **Worker models (example):**
+
+  * `llama3.1:8b`
+  * `mistral`
+  * `qwen2.5:7b`
+* **Chairman model (example):**
+
+  * `llama3.1:8b`
+
+Each Worker runs the **same service code**, configured via environment variables to select a different model.
+
+---
+
+## Setup & Installation
+
+### 1. Backend Dependencies
+
 ```bash
+pip install uv
 uv sync
 ```
 
-**Frontend:**
+---
+
+### 2. Frontend Dependencies
+
 ```bash
 cd frontend
 npm install
 cd ..
 ```
 
-### 2. Configure API Key
+---
 
-Create a `.env` file in the project root:
+### 3. No API Keys Required
 
-```bash
-OPENROUTER_API_KEY=sk-or-v1-...
-```
+* ❌ No OpenRouter
+* ❌ No OpenAI
+* ❌ No cloud credentials
 
-Get your API key at [openrouter.ai](https://openrouter.ai/). Make sure to purchase the credits you need, or sign up for automatic top up.
+All inference runs **locally**.
 
-### 3. Configure Models (Optional)
-
-Edit `backend/config.py` to customize the council:
-
-```python
-COUNCIL_MODELS = [
-    "openai/gpt-5.1",
-    "google/gemini-3-pro-preview",
-    "anthropic/claude-sonnet-4.5",
-    "x-ai/grok-4",
-]
-
-CHAIRMAN_MODEL = "google/gemini-3-pro-preview"
-```
+---
 
 ## Running the Application
 
-**Option 1: Use the start script**
+### **Worker Nodes (one per machine)**
+
 ```bash
-./start.sh
+cd llm_worker
+python -m venv venv
+venv\Scripts\activate
+pip install fastapi uvicorn httpx
 ```
 
-**Option 2: Run manually**
+Set the model:
 
-Terminal 1 (Backend):
+```bash
+set MODEL_NAME=mistral   # Windows
+```
+```bash
+export MODEL_NAME=mistral   # Linux/macOS
+```
+
+Run the Worker:
+
+```bash
+uvicorn worker:app --host 0.0.0.0 --port 8002
+```
+
+---
+
+### **Chairman Node (separate service)**
+
+```bash
+cd llm_worker
+set MODEL_NAME=qwen2.5:7b
+uvicorn chairman:app --host 0.0.0.0 --port 9000
+```
+
+---
+
+### **Backend (Orchestrator)**
+
 ```bash
 uv run python -m backend.main
 ```
 
-Terminal 2 (Frontend):
+Backend runs on:
+
+```
+http://localhost:8001
+```
+
+---
+
+### **Frontend**
+
 ```bash
 cd frontend
 npm run dev
 ```
 
-Then open http://localhost:5173 in your browser.
+Open:
+
+```
+http://localhost:5173
+```
+
+---
+
+## Demo Workflow
+
+1. Start all Worker services
+2. Start Chairman service
+3. Start Backend
+4. Start Frontend
+5. Submit a query
+6. Observe:
+
+   * Stage 1 individual responses
+   * Stage 2 peer rankings
+   * Stage 3 Chairman synthesis
+
+---
 
 ## Tech Stack
 
-- **Backend:** FastAPI (Python 3.10+), async httpx, OpenRouter API
-- **Frontend:** React + Vite, react-markdown for rendering
-- **Storage:** JSON files in `data/conversations/`
-- **Package Management:** uv for Python, npm for JavaScript
+* **Backend:** FastAPI (Python 3.10+), async httpx
+* **Frontend:** React + Vite
+* **Inference:** Ollama (local LLMs)
+* **Architecture:** Distributed REST services
+* **Storage:** JSON files in `data/conversations/`
+* **Package Management:** uv (Python), npm (JavaScript)
+
+---
+
+## Notes on Anonymization
+
+* Model identities are anonymized **at the prompt level** during peer review to prevent bias.
+* Model names remain visible in the UI for transparency and inspection.
+
+---
+
+## Inspiration & Credits
+
+This project is inspired by Andrej Karpathy’s original **LLM Council** concept.
+The implementation has been heavily refactored for **local execution**, **distributed deployment**, and **educational purposes**.
