@@ -27,7 +27,7 @@ async def chat(req: ChatRequest):
         "stream": False
     }
 
-    async with httpx.AsyncClient(timeout=120) as client:
+    async with httpx.AsyncClient(timeout=300) as client:
         r = await client.post(OLLAMA_URL, json=payload)
         r.raise_for_status()
         data = r.json()
